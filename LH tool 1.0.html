@@ -1,0 +1,222 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Work State Calculator</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            margin: 20px;
+        }
+        .container {
+            max-width: 400px;
+            margin: 0 auto;
+        }
+        label {
+            display: block;
+            margin-top: 10px;
+        }
+        input, select, button {
+            width: 100%;
+            padding: 10px;
+            margin-top: 5px;
+        }
+        .result {
+            margin-top: 20px;
+            padding: 10px;
+            background-color: #f9f9f9;
+            border: 1px solid #ddd;
+        }
+        .shift-info {
+            color: red;
+            margin-top: 20px;
+        }
+        .drop-area {
+            border: 2px dashed #ccc;
+            border-radius: 10px;
+            padding: 20px;
+            text-align: center;
+            margin-top: 20px;
+            cursor: pointer;
+        }
+        .drop-area.dragover {
+            border-color: #000;
+            background-color: #f0f0f0;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>Work State Calculator</h1>
+        <label for="dateDropdown">Select Date:</label>
+        <select id="dateDropdown"></select>
+
+        <label for="fileInput">Load XML File:</label>
+        <input type="file" id="fileInput" accept=".xml" style="display: none;">
+        <div class="drop-area" id="dropArea">
+            <p>Drag & Drop your file here or <u>click to browse</u></p>
+        </div>
+
+        <button onclick="calculate()">Calculate</button>
+
+        <div class="result" id="resultLabel">Select an XML file to load data.</div>
+
+        <div class="shift-info">
+            Full shift: 7h 50m | Short shift: 6h 10m
+        </div>
+    </div>
+
+    <script>
+        let fileContent = null;
+
+        // Drag-and-drop functionality
+        const dropArea = document.getElementById('dropArea');
+        const fileInput = document.getElementById('fileInput');
+
+        // Prevent default drag behaviors
+        ['dragenter', 'dragover', 'dragleave', 'drop'].forEach(eventName => {
+            dropArea.addEventListener(eventName, preventDefaults, false);
+        });
+
+        function preventDefaults(e) {
+            e.preventDefault();
+            e.stopPropagation();
+        }
+
+        // Highlight drop area when dragging over
+        ['dragenter', 'dragover'].forEach(eventName => {
+            dropArea.addEventListener(eventName, () => dropArea.classList.add('dragover'), false);
+        });
+
+        ['dragleave', 'drop'].forEach(eventName => {
+            dropArea.addEventListener(eventName, () => dropArea.classList.remove('dragover'), false);
+        });
+
+        // Handle dropped files
+        dropArea.addEventListener('drop', handleDrop, false);
+        dropArea.addEventListener('click', () => fileInput.click());
+
+        function handleDrop(e) {
+            const dt = e.dataTransfer;
+            const files = dt.files;
+
+            if (files.length > 0) {
+                handleFile(files[0]);
+            }
+        }
+
+        // Handle file input change
+        fileInput.addEventListener('change', function(event) {
+            const file = event.target.files[0];
+            if (file) {
+                handleFile(file);
+            }
+        });
+
+        function handleFile(file) {
+            const reader = new FileReader();
+            reader.onload = function(e) {
+                fileContent = e.target.result;
+                const dates = extractDates(fileContent);
+                populateDateDropdown(dates);
+            };
+            reader.readAsText(file);
+        }
+
+        function extractDates(xmlContent) {
+            const parser = new DOMParser();
+            const xmlDoc = parser.parseFromString(xmlContent, "text/xml");
+            const logs = xmlDoc.getElementsByTagName("ContactLog");
+            const dates = new Set();
+
+            for (let log of logs) {
+                const createTime = log.getAttribute("CreateTime");
+                if (createTime) {
+                    dates.add(createTime.substring(0, 10));
+                }
+            }
+
+            return Array.from(dates).sort((a, b) => b.localeCompare(a));
+        }
+
+        function populateDateDropdown(dates) {
+            const dropdown = document.getElementById('dateDropdown');
+            dropdown.innerHTML = '';
+            dates.forEach(date => {
+                const option = document.createElement('option');
+                option.value = date;
+                option.textContent = date;
+                dropdown.appendChild(option);
+            });
+        }
+
+        function calculate() {
+            const dateDropdown = document.getElementById('dateDropdown');
+            const selectedDate = dateDropdown.value;
+
+            if (!fileContent) {
+                alert("Please load a file first.");
+                return;
+            }
+
+            if (!selectedDate) {
+                alert("Please select a date.");
+                return;
+            }
+
+            const { readyTime, acwTime, outboundTime } = calculateTimes(fileContent, selectedDate);
+            const totalTime = readyTime + acwTime + outboundTime;
+
+            const resultLabel = document.getElementById('resultLabel');
+            resultLabel.innerHTML = `
+                Total READY: ${formatTime(readyTime)}<br>
+                Total ACW: ${formatTime(acwTime)}<br>
+                Total Outbound: ${formatTime(outboundTime)}<br>
+                TOTAL LOGIN TODAY: ${formatTime(totalTime)}
+            `;
+        }
+
+        function calculateTimes(xmlContent, targetDate) {
+            const parser = new DOMParser();
+            const xmlDoc = parser.parseFromString(xmlContent, "text/xml");
+            const logs = xmlDoc.getElementsByTagName("ContactLog");
+
+            let totalReadyTime = 0;
+            let totalAcwTime = 0;
+            let totalOutboundTime = 0;
+
+            for (let log of logs) {
+                const createTime = log.getAttribute("CreateTime");
+                const duration = parseInt(log.getAttribute("Duration") || "0");
+                const topic = log.getAttribute("Topic");
+
+                if (createTime && createTime.startsWith(targetDate)) {
+                    if (topic === "Ready") {
+                        totalReadyTime += Math.max(0, duration);
+                    } else if (topic === "After Call Work") {
+                        totalAcwTime += Math.max(0, duration);
+                    }
+
+                    const items = log.getElementsByTagName("ContactLogItem");
+                    for (let item of items) {
+                        const uri = item.getAttribute("Uri");
+                        if (uri && uri.startsWith("+9")) {
+                            totalOutboundTime += Math.max(0, duration);
+                        }
+                    }
+                }
+            }
+
+            return { readyTime: totalReadyTime, acwTime: totalAcwTime, outboundTime: totalOutboundTime };
+        }
+
+        function formatTime(seconds) {
+            const hours = Math.floor(seconds / 3600);
+            const minutes = Math.floor((seconds % 3600) / 60);
+            const secs = seconds % 60;
+            return `${hours}h ${minutes}m ${secs}s`;
+        }
+    </script>
+</body>
+</html>
