@@ -69,11 +69,36 @@
             padding: 15px;
             background: #252525;
             border-radius: 8px;
+            font-size: 18px;
+            line-height: 1.6;
         }
         .shift-info {
-            color: #ff4081;
             margin-top: 20px;
             font-weight: bold;
+        }
+        .shift-info span {
+            color: #ff4081; /* Red color for "Full shift:" and "Short shift:" */
+        }
+        .shift-info strong {
+            color: #fff; /* White color for the time values */
+        }
+        .ready {
+            color: #4caf50; /* Green for READY */
+            font-weight: bold;
+        }
+        .acw {
+            color: #ff4081; /* Red for ACW */
+            font-weight: bold;
+        }
+        .outbound {
+            color: #ffa500; /* Orange for Outbound */
+            font-weight: bold;
+        }
+        .total {
+            color: #fff; /* White for TOTAL LOGIN TODAY */
+            font-weight: bold;
+            font-size: 24px; /* Larger font size */
+            margin-top: 10px;
         }
     </style>
 </head>
@@ -88,7 +113,9 @@
 
         <button onclick="calculate()">Calculate</button>
         <div class="result" id="resultLabel">Select an XML file to load data.</div>
-        <div class="shift-info">Full shift: 7h 50m | Short shift: 6h 10m</div>
+        <div class="shift-info">
+            <span>Full shift:</span> <strong>7h 50m</strong> | <span>Short shift:</span> <strong>6h 10m</strong>
+        </div>
     </div>
 
     <script>
@@ -133,10 +160,10 @@
 
             const { readyTime, acwTime, outboundTime } = calculateTimes(fileContent, selectedDate);
             document.getElementById('resultLabel').innerHTML = `
-                <strong>Total READY:</strong> ${formatTime(readyTime)}<br>
-                <strong>Total ACW:</strong> ${formatTime(acwTime)}<br>
-                <strong>Total Outbound:</strong> ${formatTime(outboundTime)}<br>
-                <strong>TOTAL LOGIN TODAY:</strong> ${formatTime(readyTime + acwTime + outboundTime)}
+                <div class="ready"><strong>Total READY:</strong> ${formatTime(readyTime)}</div>
+                <div class="acw"><strong>Total ACW:</strong> ${formatTime(acwTime)}</div>
+                <div class="outbound"><strong>Total Outbound:</strong> ${formatTime(outboundTime)}</div>
+                <div class="total"><strong>TOTAL LOGIN TODAY:</strong> ${formatTime(readyTime + acwTime + outboundTime)}</div>
             `;
         }
 
