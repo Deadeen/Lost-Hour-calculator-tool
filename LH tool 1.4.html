@@ -38,9 +38,32 @@
             border: none;
             font-size: 16px;
         }
-        select, input {
+        input {
             background: #252525;
             color: #fff;
+        }
+        /* Custom Dropdown Styling */
+        select {
+            appearance: none; /* Remove default arrow */
+            -webkit-appearance: none; /* Remove default arrow for Safari */
+            -moz-appearance: none; /* Remove default arrow for Firefox */
+            background: #252525 url("data:image/svg+xml;utf8,<svg fill='white' height='24' viewBox='0 0 24 24' width='24' xmlns='http://www.w3.org/2000/svg'><path d='M7 10l5 5 5-5z'/><path d='M0 0h24v24H0z' fill='none'/></svg>") no-repeat right 12px center;
+            background-size: 16px;
+            padding-right: 40px; /* Add space for the custom arrow */
+            border: 2px solid #0ff;
+            color: #fff;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.3s ease-in-out;
+        }
+        select:hover {
+            border-color: #f0f;
+            box-shadow: 0 0 8px rgba(0, 255, 255, 0.4);
+        }
+        select:focus {
+            outline: none;
+            border-color: #f0f;
+            box-shadow: 0 0 12px rgba(0, 255, 255, 0.6);
         }
         .drop-area {
             border: 2px dashed #0ff;
@@ -50,19 +73,65 @@
             margin-top: 20px;
             cursor: pointer;
             background: #252525;
+            transition: 0.3s;
         }
         .drop-area:hover {
-            background: #333;
+            background: #444;
+            transform: scale(1.05);
         }
         button {
+            position: relative;
             background: linear-gradient(45deg, #0ff, #f0f);
             color: #fff;
             font-weight: bold;
+            padding: 10px 20px;
+            border: none;
             cursor: pointer;
-            transition: 0.3s;
+            overflow: hidden;
+            transition: transform 0.3s ease-in-out;
+            font-size: 16px;
+            z-index: 1;
+        }
+        button::before {
+            content: "";
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: linear-gradient(45deg, red, yellow);
+            opacity: 0;
+            transition: opacity 0.3s ease-in-out;
+            z-index: -1;
+        }
+        /* Clicked State */
+        button.clicked {
+            background: linear-gradient(45deg, black, white);
+        }
+        button.clicked::before {
+            opacity: 0 !important;
+        }
+        /* New overlay for clicked hover state */
+        button.clicked::after {
+            content: "";
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: linear-gradient(45deg, white, black);
+            opacity: 0;
+            transition: opacity 0.3s ease-in-out;
+            z-index: -1;
+        }
+        button.clicked:hover::after {
+            opacity: 1;
         }
         button:hover {
             transform: scale(1.05);
+        }
+        button:hover::before {
+            opacity: 1;
         }
         .result {
             margin-top: 20px;
@@ -102,7 +171,7 @@
         .warning {
             margin-top: 20px;
             padding: 15px;
-            background: #ff4081; /* Red background for warnings */
+            background: #ff4444; /* Red background for warnings */
             color: #fff;
             font-weight: bold;
             border-radius: 8px;
@@ -122,7 +191,7 @@
         <div id="dateSection" class="hidden">
             <label for="dateDropdown">Select Date:</label>
             <select id="dateDropdown"></select>
-            <button onclick="calculate()">Calculate</button>
+            <button onclick="calculate()" id="calculateButton">Calculate</button>
         </div>
 
         <div id="resultSection" class="hidden">
@@ -132,17 +201,17 @@
         <div id="shiftSection" class="hidden">
             <label for="shiftType">Select Shift Type:</label>
             <select id="shiftType">
+                <option value="">Select Shift</option>
                 <option value="full">Full Shift (07:50:00)</option>
                 <option value="short">Short Shift (06:10:00)</option>
                 <option value="part">Part-time Shift (03:40:00)</option>
             </select>
-            <button onclick="checkShift()">Check Shift</button>
         </div>
 
         <div id="outOfQSection" class="hidden">
             <label for="outOfQTime">Out of Q Time (in minutes):</label>
             <input type="number" id="outOfQTime" placeholder="Enter out-of-Q time in minutes">
-            <button onclick="calculateLostHours()">Calculate Lost Hours</button>
+            <button onclick="calculateLostHours()" id="lostHoursButton">Calculate Lost Hours</button>
         </div>
 
         <div id="adviceMessage" class="hidden"></div>
@@ -157,6 +226,20 @@
         const shiftSection = document.getElementById('shiftSection');
         const outOfQSection = document.getElementById('outOfQSection');
         const adviceMessage = document.getElementById('adviceMessage');
+        const calculateButton = document.getElementById('calculateButton');
+        const lostHoursButton = document.getElementById('lostHoursButton');
+        const shiftTypeDropdown = document.getElementById('shiftType');
+
+        // Add event listeners for buttons to change their style when clicked
+        calculateButton.addEventListener('click', () => {
+            calculateButton.classList.add('clicked');
+        });
+        lostHoursButton.addEventListener('click', () => {
+            lostHoursButton.classList.add('clicked');
+        });
+
+        // Automatically trigger the next step when a shift type is selected
+        shiftTypeDropdown.addEventListener('change', checkShift);
 
         dropArea.addEventListener('dragover', (e) => {
             e.preventDefault();
@@ -209,7 +292,7 @@
         }
 
         function checkShift() {
-            const shiftType = document.getElementById('shiftType').value;
+            const shiftType = shiftTypeDropdown.value;
             const totalLoginTime = calculateTotalLoginTime();
 
             const shiftTimes = {
@@ -236,7 +319,7 @@
 
         function calculateLostHours() {
             const outOfQTime = parseInt(document.getElementById('outOfQTime').value) || 0;
-            const shiftType = document.getElementById('shiftType').value;
+            const shiftType = shiftTypeDropdown.value;
             const totalLoginTime = calculateTotalLoginTime();
 
             const shiftTimes = {
