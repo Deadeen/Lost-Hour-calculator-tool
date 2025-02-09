@@ -1,0 +1,160 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Work State Calculator</title>
+    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;600&display=swap" rel="stylesheet">
+    <style>
+        body {
+            font-family: 'Poppins', sans-serif;
+            background-color: #121212;
+            color: #fff;
+            margin: 20px;
+            text-align: center;
+        }
+        .container {
+            max-width: 450px;
+            margin: auto;
+            background: #1e1e1e;
+            padding: 20px;
+            border-radius: 12px;
+            box-shadow: 0 0 15px rgba(0, 255, 255, 0.2);
+        }
+        h1 {
+            font-size: 22px;
+            margin-bottom: 15px;
+        }
+        label {
+            display: block;
+            margin-top: 10px;
+            font-weight: 600;
+        }
+        select, input, button {
+            width: 100%;
+            padding: 12px;
+            margin-top: 8px;
+            border-radius: 8px;
+            border: none;
+            font-size: 16px;
+        }
+        select, input {
+            background: #252525;
+            color: #fff;
+        }
+        .drop-area {
+            border: 2px dashed #0ff;
+            border-radius: 10px;
+            padding: 20px;
+            text-align: center;
+            margin-top: 20px;
+            cursor: pointer;
+            background: #252525;
+        }
+        .drop-area:hover {
+            background: #333;
+        }
+        button {
+            background: linear-gradient(45deg, #0ff, #f0f);
+            color: #fff;
+            font-weight: bold;
+            cursor: pointer;
+            transition: 0.3s;
+        }
+        button:hover {
+            transform: scale(1.05);
+        }
+        .result {
+            margin-top: 20px;
+            padding: 15px;
+            background: #252525;
+            border-radius: 8px;
+        }
+        .shift-info {
+            color: #ff4081;
+            margin-top: 20px;
+            font-weight: bold;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>Work State Calculator</h1>
+        <label for="dateDropdown">Select Date:</label>
+        <select id="dateDropdown"></select>
+
+        <div class="drop-area" id="dropArea">Drag & Drop your file here or <u>click to browse</u></div>
+        <input type="file" id="fileInput" accept=".xml" style="display: none;">
+
+        <button onclick="calculate()">Calculate</button>
+        <div class="result" id="resultLabel">Select an XML file to load data.</div>
+        <div class="shift-info">Full shift: 7h 50m | Short shift: 6h 10m</div>
+    </div>
+
+    <script>
+        let fileContent = null;
+        const dropArea = document.getElementById('dropArea');
+        const fileInput = document.getElementById('fileInput');
+
+        dropArea.addEventListener('dragover', (e) => {
+            e.preventDefault();
+            dropArea.style.background = '#333';
+        });
+        dropArea.addEventListener('dragleave', () => dropArea.style.background = '#252525');
+        dropArea.addEventListener('drop', (e) => {
+            e.preventDefault();
+            handleFile(e.dataTransfer.files[0]);
+        });
+        dropArea.addEventListener('click', () => fileInput.click());
+        fileInput.addEventListener('change', (e) => handleFile(e.target.files[0]));
+
+        function handleFile(file) {
+            const reader = new FileReader();
+            reader.onload = (e) => {
+                fileContent = e.target.result;
+                populateDateDropdown(extractDates(fileContent));
+            };
+            reader.readAsText(file);
+        }
+
+        function extractDates(xmlContent) {
+            const xmlDoc = new DOMParser().parseFromString(xmlContent, "text/xml");
+            return [...new Set([...xmlDoc.getElementsByTagName("ContactLog")].map(log => log.getAttribute("CreateTime")?.substring(0, 10)))].sort((a, b) => b.localeCompare(a));
+        }
+
+        function populateDateDropdown(dates) {
+            document.getElementById('dateDropdown').innerHTML = dates.map(date => `<option value="${date}">${date}</option>`).join('');
+        }
+
+        function calculate() {
+            const selectedDate = document.getElementById('dateDropdown').value;
+            if (!fileContent) return alert("Please load a file first.");
+            if (!selectedDate) return alert("Please select a date.");
+
+            const { readyTime, acwTime, outboundTime } = calculateTimes(fileContent, selectedDate);
+            document.getElementById('resultLabel').innerHTML = `
+                <strong>Total READY:</strong> ${formatTime(readyTime)}<br>
+                <strong>Total ACW:</strong> ${formatTime(acwTime)}<br>
+                <strong>Total Outbound:</strong> ${formatTime(outboundTime)}<br>
+                <strong>TOTAL LOGIN TODAY:</strong> ${formatTime(readyTime + acwTime + outboundTime)}
+            `;
+        }
+
+        function calculateTimes(xmlContent, targetDate) {
+            const logs = new DOMParser().parseFromString(xmlContent, "text/xml").getElementsByTagName("ContactLog");
+            return [...logs].reduce((acc, log) => {
+                if (log.getAttribute("CreateTime")?.startsWith(targetDate)) {
+                    const duration = Math.max(0, parseInt(log.getAttribute("Duration") || "0"));
+                    log.getAttribute("Topic") === "Ready" ? acc.readyTime += duration : log.getAttribute("Topic") === "After Call Work" ? acc.acwTime += duration : null;
+                    acc.outboundTime += [...log.getElementsByTagName("ContactLogItem")].some(item => item.getAttribute("Uri")?.startsWith("+9")) ? duration : 0;
+                }
+                return acc;
+            }, { readyTime: 0, acwTime: 0, outboundTime: 0 });
+        }
+
+        function formatTime(seconds) {
+            return `${Math.floor(seconds / 3600)}h ${Math.floor((seconds % 3600) / 60)}m ${seconds % 60}s`;
+        }
+    </script>
+</body>
+</html>
