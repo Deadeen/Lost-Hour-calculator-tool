@@ -30,7 +30,7 @@
             font-weight: 600;
             text-align: left;
         }
-        select, input, button {
+        select, input, button, textarea {
             width: 100%;
             padding: 12px;
             margin-top: 8px;
@@ -38,7 +38,7 @@
             border: none;
             font-size: 16px;
         }
-        input {
+        input, textarea {
             background: #252525;
             color: #fff;
         }
@@ -143,7 +143,7 @@
             color: #fff;
             font-weight: bold;
             border-radius: 8px;
-            font-size: 18px;
+            font-size: 22px;
             border: 2px solid #4caf50;
             box-shadow: 0 0 20px #4caf50;
         }
@@ -154,7 +154,7 @@
             color: #fff;
             font-weight: bold;
             border-radius: 8px;
-            font-size: 18px;
+            font-size: 22px;
             border: 2px solid #ff4444;
             box-shadow: 0 0 20px #ff4444;
         }
@@ -271,14 +271,53 @@
             box-shadow: 0 0 8px rgba(0, 255, 255, 0.4);
         }
 
+        /* New styles for NT Username section */
+        .username-section {
+            display: flex;
+            gap: 10px;
+            margin-top: 20px;
+        }
+
+        .username-section input {
+            flex: 1;
+        }
+
+        .username-section button {
+            width: auto;
+        }
+
+        .paste-section {
+            margin-top: 20px;
+        }
+
+        .paste-section textarea {
+            height: 150px;
+            resize: vertical;
+        }
+
     </style>
 </head>
 <body>
     <div class="container">
         <h1>Work State Calculator</h1>
+
+        <!-- NT Username Section -->
+        <div class="username-section">
+            <input type="text" id="ntUsername" placeholder="Enter your NT Username">
+            <button id="openFileButton" class="hidden" onclick="openFile()">Open File</button>
+        </div>
+
+        <!-- Paste Section -->
+        <div class="paste-section hidden" id="pasteSection">
+            <textarea id="pasteBox" placeholder="Copy and paste the content of the file here"></textarea>
+            <button onclick="handlePaste()">Use Pasted Data</button>
+        </div>
+
+        <!-- Original Drop Area -->
         <div class="drop-area" id="dropArea">Drag & Drop your file here or <u>click to browse</u></div>
         <input type="file" id="fileInput" accept=".xml" style="display: none;">
 
+        <!-- Rest of the sections -->
         <div id="dateSection" class="hidden">
             <label for="dateDropdown">Select Date:</label>
             <div class="custom-select-wrapper" id="dateDropdownWrapper">
@@ -327,21 +366,63 @@
         const fileInput = document.getElementById('fileInput');
         const dateSection = document.getElementById('dateSection');
         const resultSection = document.getElementById('resultSection');
-        const resultCard = document.getElementById('resultLabel'); // Get the result card
+        const resultCard = document.getElementById('resultLabel');
         const shiftSection = document.getElementById('shiftSection');
         const outOfQSection = document.getElementById('outOfQSection');
         const adviceMessage = document.getElementById('adviceMessage');
         const calculateButton = document.getElementById('calculateButton');
         const lostHoursButton = document.getElementById('lostHoursButton');
+        const ntUsernameInput = document.getElementById('ntUsername');
+        const openFileButton = document.getElementById('openFileButton');
+        const pasteSection = document.getElementById('pasteSection');
+        const pasteBox = document.getElementById('pasteBox');
+
+        // Show/Hide Open File button based on NT Username input
+        ntUsernameInput.addEventListener('input', function() {
+            if (this.value.trim() !== '') {
+                openFileButton.classList.remove('hidden');
+            } else {
+                openFileButton.classList.add('hidden');
+            }
+        });
+
+        // Open file in new tab
+        function openFile() {
+            const ntUsername = ntUsernameInput.value.trim();
+            if (!ntUsername) return alert("Please enter your NT Username.");
+
+            const filePath = `file:///C:/Users/${ntUsername}/AppData/Roaming/Avaya/one-X%20Agent/2.5/Profiles/default/ContactLog.xml`;
+            window.open(filePath, '_blank');
+
+            // Show the paste section
+            pasteSection.classList.remove('hidden');
+        }
+
+        // Handle pasted data
+        function handlePaste() {
+            const pastedData = pasteBox.value.trim();
+            if (!pastedData) return alert("Please paste the file content.");
+
+            // Remove the first line if it exists
+            const lines = pastedData.split('\n');
+            if (lines.length > 1) {
+                lines.shift(); // Remove the first line
+            }
+            fileContent = lines.join('\n'); // Join the remaining lines
+
+            populateDateDropdown(extractDates(fileContent));
+            dateSection.classList.remove('hidden');
+            pasteSection.classList.add('hidden');
+        }
 
         // Add event listeners for buttons to change their style when clicked
-        calculateButton.addEventListener('click', () => {
-            calculateButton.classList.add('clicked');
-        });
-        lostHoursButton.addEventListener('click', () => {
-            lostHoursButton.classList.add('clicked');
+        document.querySelectorAll('button').forEach(button => {
+            button.addEventListener('click', () => {
+                button.classList.add('clicked');
+            });
         });
 
+        // Rest of the code remains the same as before
         dropArea.addEventListener('dragover', (e) => {
             e.preventDefault();
             dropArea.style.background = '#333';
@@ -543,7 +624,7 @@
                     const topic = log.getAttribute("Topic");
                     if (topic === "Ready") acc.readyTime += duration;
                     else if (topic === "After Call Work") acc.acwTime += duration;
-                    else {
+                    else if (topic === "") { // Only calculate outbound if Topic is exactly ""
                         // Check for Outbound calls
                         const isOutbound = [...log.getElementsByTagName("ContactLogItem")].some(item => item.getAttribute("Uri")?.startsWith("+9"));
                         if (isOutbound) acc.outboundTime += duration;
@@ -552,7 +633,7 @@
                 return acc;
             }, { readyTime: 0, acwTime: 0, outboundTime: 0 });
         }
-
+        
         function formatTime(seconds) {
             return `${Math.floor(seconds / 3600)}h ${Math.floor((seconds % 3600) / 60)}m ${seconds % 60}s`;
         }
