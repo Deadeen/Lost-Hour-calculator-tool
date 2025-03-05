@@ -1,127 +1,97 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-    <!-- Meta tags for character encoding and viewport -->
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <!-- Title of the page -->
     <title>Work State Calculator</title>
-    <!-- Linking Google Fonts -->
     <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;600&display=swap" rel="stylesheet">
-    <!-- Internal CSS styles -->
     <style>
-        /* Base styles for the body */
         body {
-            font-family: 'Poppins', sans-serif; /* Using the 'Poppins' font */
-            background-color: #121212;           /* Dark background color */
-            color: #fff;                         /* White text color */
-            margin: 20px;                        /* Margin around the body */
-            text-align: center;                  /* Centering text */
-        }
-
-        /* Container to center content and set max-width */
-        .container {
-            max-width: 450px;                    /* Maximum width of the container */
-            margin: auto;                        /* Center horizontally */
-            background: #1e1e1e;                 /* Darker background for the container */
-            padding: 20px;                       /* Padding inside the container */
-            border-radius: 12px;                 /* Rounded corners */
-            box-shadow: 0 0 15px rgba(0, 255, 255, 0.2); /* Subtle box shadow */
-        }
-
-        /* Styling the main heading */
-        h1 {
-            font-size: 22px;                     /* Font size */
-            margin-bottom: 15px;                 /* Margin bottom */
-        }
-
-        /* Base styles for labels */
-        label {
-            display: block;                      /* Display block to take full width */
-            margin-top: 10px;                    /* Margin top */
-            font-weight: 600;                    /* Bold text */
-            text-align: left;                    /* Align text to the left */
-        }
-
-        /* Base styles for select, input, textarea (removed 'button' from here to fix the issue) */
-        select, input, textarea {
-            width: 100%;                         /* Full width */
-            padding: 12px;                       /* Padding inside */
-            margin-top: 8px;                     /* Margin top */
-            border-radius: 8px;                  /* Rounded corners */
-            border: none;                        /* Remove default border */
-            font-size: 16px;                     /* Font size */
-        }
-
-        /* Specific styles for input and textarea */
-        input, textarea {
-            background: #252525;                 /* Dark background */
-            color: #fff;                         /* White text color */
-        }
-
-        /* Base styles for buttons (specified separately) */
-        button {
-            /* Position relative for pseudo-elements */
-            position: relative;
-            /* Gradient background */
-            background: linear-gradient(45deg, #0ff, #f0f);
-            /* White text color */
+            font-family: 'Poppins', sans-serif;
+            background-color: #121212;
             color: #fff;
-            /* Bold text */
-            font-weight: bold;
-            /* Padding */
-            padding: 10px 20px;
-            /* Remove border */
-            border: none;
-            /* Pointer cursor */
-            cursor: pointer;
-            /* Hide overflow for pseudo-elements */
-            overflow: hidden;
-            /* Smooth transition for transform */
-            transition: transform 0.3s ease-in-out;
-            /* Font size */
-            font-size: 16px;
-            /* Higher stacking context */
-            z-index: 1;
-            /* Remove default width to prevent expanding */
-            width: auto;
-            /* Margin top */
+            margin: 20px;
+            text-align: center;
+        }
+        .container {
+            max-width: 450px;
+            margin: auto;
+            background: #1e1e1e;
+            padding: 20px;
+            border-radius: 12px;
+            box-shadow: 0 0 15px rgba(0, 255, 255, 0.2);
+        }
+        h1 {
+            font-size: 22px;
+            margin-bottom: 15px;
+        }
+        label {
+            display: block;
+            margin-top: 10px;
+            font-weight: 600;
+            text-align: left;
+        }
+        select, input, button, textarea {
+            width: 100%;
+            padding: 12px;
             margin-top: 8px;
-            /* Rounded corners */
             border-radius: 8px;
+            border: none;
+            font-size: 16px;
         }
-
-        /* Additional CSS for the small button next to input field */
-        .username-section button {
-            flex: none;  /* Prevent the button from stretching in the flex container */
+        input, textarea {
+            background: #252525;
+            color: #fff;
         }
-
-        /* Before pseudo-element for button hover effect */
+        .drop-area {
+            border: 2px dashed #0ff;
+            border-radius: 10px;
+            padding: 20px;
+            text-align: center;
+            margin-top: 20px;
+            cursor: pointer;
+            background: #252525;
+            transition: 0.3s;
+        }
+        .drop-area:hover {
+            background: #333;
+            transform: scale(1.05);
+        }
+        button {
+            position: relative;
+            background: linear-gradient(45deg, #0ff, #f0f);
+            color: #fff;
+            font-weight: bold;
+            padding: 10px 20px;
+            border: none;
+            cursor: pointer;
+            overflow: hidden;
+            transition: transform 0.3s ease-in-out;
+            font-size: 16px;
+            z-index: 1;
+        }
         button::before {
             content: "";
-            position: absolute;          /* Positioning for overlap */
+            position: absolute;
             top: 0;
             left: 0;
             width: 100%;
             height: 100%;
             background: linear-gradient(45deg, red, yellow);
-            opacity: 0;                  /* Start transparent */
+            opacity: 0;
             transition: opacity 0.3s ease-in-out;
-            z-index: -1;                 /* Behind the button content */
+            z-index: -1;
         }
-
-        /* Style when the button is clicked */
+        /* Clicked State */
         button.clicked {
             background: linear-gradient(45deg, black, white);
         }
-        /* Hide the before pseudo-element when clicked */
         button.clicked::before {
             opacity: 0 !important;
         }
-        /* After pseudo-element for hover effect when clicked */
+        /* New overlay for clicked hover state */
         button.clicked::after {
             content: "";
-            position: absolute;          /* Positioning for overlap */
+            position: absolute;
             top: 0;
             left: 0;
             width: 100%;
@@ -129,75 +99,47 @@
             background: linear-gradient(45deg, white, black);
             opacity: 0;
             transition: opacity 0.3s ease-in-out;
-            z-index: -1;                 /* Behind the button content */
+            z-index: -1;
         }
-        /* Hover effect for after pseudo-element when clicked */
         button.clicked:hover::after {
             opacity: 1;
         }
-        /* Hover effect for buttons */
         button:hover {
-            transform: scale(1.05);      /* Slight zoom */
+            transform: scale(1.05);
         }
-        /* Hover effect for before pseudo-element */
         button:hover::before {
             opacity: 1;
         }
-
-        /* Styles for the drag-and-drop area */
-        .drop-area {
-            border: 2px dashed #0ff;     /* Dashed border */
-            border-radius: 10px;         /* Rounded corners */
-            padding: 20px;               /* Padding inside */
-            text-align: center;          /* Center text */
-            margin-top: 20px;            /* Margin top */
-            cursor: pointer;             /* Pointer cursor */
-            background: #252525;         /* Dark background */
-            transition: 0.3s;
-        }
-        /* Hover effect for drop area */
-        .drop-area:hover {
-            background: #333;
-            transform: scale(1.05);      /* Slight zoom effect */
-        }
-
-        /* Styles for result section */
         .result {
-            margin-top: 20px;            /* Margin top */
-            padding: 15px;               /* Padding inside */
-            background: #252525;         /* Dark background */
-            border-radius: 8px;          /* Rounded corners */
-            font-size: 18px;             /* Font size */
-            line-height: 1.6;            /* Line height */
+            margin-top: 20px;
+            padding: 15px;
+            background: #252525;
+            border-radius: 8px;
+            font-size: 18px;
+            line-height: 1.6;
         }
-
-        /* Styles for different statuses */
         .ready {
-            color: #4caf50;              /* Green color */
+            color: #4caf50;
             font-weight: bold;
         }
         .acw {
-            color: #ff4081;              /* Pink color */
+            color: #ff4081;
             font-weight: bold;
         }
         .outbound {
-            color: #ffa500;              /* Orange color */
+            color: #ffa500;
             font-weight: bold;
         }
-
-        /* Style for total login time */
         .total {
             color: #fff;
             font-weight: bold;
             font-size: 24px;
             margin-top: 10px;
         }
-
-        /* Advice message styling */
         .advice {
             margin-top: 20px;
             padding: 15px;
-            background: #4caf50;         /* Green background */
+            background: #4caf50;
             color: #fff;
             font-weight: bold;
             border-radius: 8px;
@@ -205,12 +147,10 @@
             border: 2px solid #4caf50;
             box-shadow: 0 0 20px #4caf50;
         }
-
-        /* Warning message styling */
         .warning {
             margin-top: 20px;
             padding: 15px;
-            background: #ff4444;         /* Red background */
+            background: #ff4444;
             color: #fff;
             font-weight: bold;
             border-radius: 8px;
@@ -218,25 +158,23 @@
             border: 2px solid #ff4444;
             box-shadow: 0 0 20px #ff4444;
         }
-
-        /* Class to hide elements */
         .hidden {
             display: none;
         }
-
-        /* Custom select dropdown styles */
+        /* Custom Select Dropdown */
         .custom-select-wrapper {
             position: relative;
             display: inline-block;
             width: 100%;
             user-select: none;
         }
+
         .custom-select {
             position: relative;
             display: flex;
             flex-direction: column;
         }
-        /* Trigger area for custom select */
+
         .custom-select__trigger {
             position: relative;
             display: flex;
@@ -251,12 +189,12 @@
             border: 2px solid #0ff;
             transition: all 0.3s ease-in-out;
         }
-        /* Hover effect for custom select trigger */
+
         .custom-select__trigger:hover {
             border-color: #f0f;
             box-shadow: 0 0 8px rgba(0, 255, 255, 0.4);
         }
-        /* Options container for custom select */
+
         .custom-options {
             position: absolute;
             display: none;
@@ -271,191 +209,154 @@
             overflow-y: auto;
             z-index: 2;
         }
-        /* Show options when select is open */
+
         .custom-select.open .custom-options {
             display: flex;
         }
-        /* Individual option styling */
+
         .custom-option {
             padding: 10px;
             cursor: pointer;
             transition: background 0.3s ease-in-out;
         }
-        /* Hover effect for options */
+
         .custom-option:hover {
             background: #333;
         }
-        /* Selected option styling */
+
         .custom-option.selected {
             background: #444;
         }
-        /* Arrow indicator for custom select */
+
         .arrow {
             width: 0;
             height: 0;
             margin-left: 10px;
-            /* Upward triangle */
             border-left: 6px solid transparent;
             border-right: 6px solid transparent;
             border-top: 6px solid #fff;
         }
-        /* Arrow rotation when select is open */
+
         .custom-select.open .arrow {
-            /* Downward triangle */
             border-top: none;
             border-bottom: 6px solid #fff;
         }
 
-        /* Green glow effect for result card */
+        /* Green and Red Glow for entire result card */
         .result.green-glow {
             border: 2px solid #4caf50;
             box-shadow: 0 0 20px #4caf50;
         }
-        /* Red glow effect for result card */
+
         .result.red-glow {
             border: 2px solid #ff4444;
             box-shadow: 0 0 20px #ff4444;
         }
 
-        /* Styling for Out of Q input field */
+        /* Styling for Out of Q Input */
         #outOfQTime {
             background: #252525;
             border-radius: 8px;
             font-size: 16px;
             padding: 12px;
-            width: 93%;                    /* Adjust width to fit */
+            width: 93%;
             color: #fff;
             border: 2px solid #0ff;
             margin-top: 8px;
         }
-        /* Focus effect for Out of Q input */
+
         #outOfQTime:focus {
             outline: none;
             border-color: #f0f;
             box-shadow: 0 0 8px rgba(0, 255, 255, 0.4);
         }
 
-        /* Styling for NT Username section */
+        /* New styles for NT Username section */
         .username-section {
-            display: flex;    /* Display as flex to place items side by side */
-            gap: 10px;        /* Space between input and button */
+            display: flex;
+            gap: 10px;
             margin-top: 20px;
         }
-        /* Make NT Username input expand to fill available space */
+
         .username-section input {
-            flex: 1;          /* Input will take up available space */
-        }
-        /* Ensure Open File button doesn't grow */
-        .username-section button {
-            flex: none;       /* Button will not grow or shrink */
+            flex: 1;
         }
 
-        /* Paste section styling */
+        .username-section button {
+            width: auto;
+        }
+
         .paste-section {
             margin-top: 20px;
         }
-        /* Textarea in paste section */
+
         .paste-section textarea {
             height: 150px;
             resize: vertical;
         }
+
     </style>
 </head>
 <body>
-    <!-- Main container -->
     <div class="container">
         <h1>Work State Calculator</h1>
 
         <!-- NT Username Section -->
         <div class="username-section">
-            <!-- Input field for NT Username -->
             <input type="text" id="ntUsername" placeholder="Enter your NT Username">
-            <!-- Button to open file (hidden by default) -->
             <button id="openFileButton" class="hidden" onclick="openFile()">Open File</button>
         </div>
 
-        <!-- Paste Section (hidden by default) -->
+        <!-- Paste Section -->
         <div class="paste-section hidden" id="pasteSection">
-            <!-- Textarea for pasting file content -->
             <textarea id="pasteBox" placeholder="Copy and paste the content of the file here"></textarea>
-            <!-- Button to use pasted data -->
             <button onclick="handlePaste()">Use Pasted Data</button>
         </div>
 
-        <!-- Drag and Drop Area -->
+        <!-- Original Drop Area -->
         <div class="drop-area" id="dropArea">Drag & Drop your file here or <u>click to browse</u></div>
-        <!-- Hidden file input -->
         <input type="file" id="fileInput" accept=".xml" style="display: none;">
 
-        <!-- Date Selection Section (hidden by default) -->
+        <!-- Rest of the sections -->
         <div id="dateSection" class="hidden">
             <label for="dateDropdown">Select Date:</label>
-            <!-- Custom select wrapper -->
             <div class="custom-select-wrapper" id="dateDropdownWrapper">
                 <div class="custom-select dateDropdown">
-                    <!-- Trigger area for date dropdown -->
-                    <div class="custom-select__trigger">
-                        <span>Select Date</span>
+                    <div class="custom-select__trigger"><span>Select Date</span>
                         <div class="arrow"></div>
                     </div>
-                    <!-- Options container for dates -->
                     <div class="custom-options" id="dateOptions"></div>
                 </div>
             </div>
-            <!-- Calculate button (added a class to make it full-width) -->
-            <button onclick="calculate()" id="calculateButton" class="full-width-button">Calculate</button>
+            <button onclick="calculate()" id="calculateButton">Calculate</button>
         </div>
 
-        <!-- Result Section (hidden by default) -->
+        <!-- New Shift Paste Section -->
+        <div id="shiftPasteSection" class="hidden">
+            <label for="shiftPasteBox">Paste Your Shift:</label>
+            <textarea id="shiftPasteBox" placeholder="Paste your shift details here"></textarea>
+        </div>
+
         <div id="resultSection" class="hidden">
-            <!-- Result display area -->
             <div class="result" id="resultLabel"></div>
-            <!-- Advice message -->
             <div id="adviceMessage" class="hidden"></div>
         </div>
 
-        <!-- Shift Type Selection (hidden by default) -->
-        <div id="shiftSection" class="hidden">
-            <label for="shiftType">Select Shift Type:</label>
-            <!-- Custom select wrapper -->
-            <div class="custom-select-wrapper" id="shiftDropdownWrapper">
-                <div class="custom-select shiftType">
-                    <!-- Trigger area for shift type dropdown -->
-                    <div class="custom-select__trigger">
-                        <span>Select Shift</span>
-                        <div class="arrow"></div>
-                    </div>
-                    <!-- Options container for shift types -->
-                    <div class="custom-options">
-                        <span class="custom-option" data-value="full">Full Shift (07:50:00)</span>
-                        <span class="custom-option" data-value="short">Short Shift (06:10:00)</span>
-                        <span class="custom-option" data-value="part">Part-time Shift (03:40:00)</span>
-                    </div>
-                </div>
-            </div>
-        </div>
-
-        <!-- Out of Q Time Section (hidden by default) -->
         <div id="outOfQSection" class="hidden">
             <label for="outOfQTime">Did you get Out of Q (in minutes):</label>
-            <!-- Input field for out of Q time -->
             <input type="number" id="outOfQTime" placeholder="Enter out-of-Q time in minutes">
-            <!-- Button to recalculate based on out of Q time -->
             <button onclick="calculateLostHours()" id="lostHoursButton" class="hidden">Recalculate</button>
         </div>
+
     </div>
 
-    <!-- JavaScript code -->
     <script>
-        // Variables to hold references to DOM elements
-        let fileContent = null; // Variable to store the content of the loaded file
+        let fileContent = null;
         const dropArea = document.getElementById('dropArea');
         const fileInput = document.getElementById('fileInput');
         const dateSection = document.getElementById('dateSection');
         const resultSection = document.getElementById('resultSection');
         const resultCard = document.getElementById('resultLabel');
-        const shiftSection = document.getElementById('shiftSection');
-        const outOfQSection = document.getElementById('outOfQSection');
         const adviceMessage = document.getElementById('adviceMessage');
         const calculateButton = document.getElementById('calculateButton');
         const lostHoursButton = document.getElementById('lostHoursButton');
@@ -463,8 +364,10 @@
         const openFileButton = document.getElementById('openFileButton');
         const pasteSection = document.getElementById('pasteSection');
         const pasteBox = document.getElementById('pasteBox');
+        const shiftPasteSection = document.getElementById('shiftPasteSection');
+        const shiftPasteBox = document.getElementById('shiftPasteBox');
 
-        // Show or hide the "Open File" button based on the NT Username input
+        // Show/Hide Open File button based on NT Username input
         ntUsernameInput.addEventListener('input', function() {
             if (this.value.trim() !== '') {
                 openFileButton.classList.remove('hidden');
@@ -473,103 +376,75 @@
             }
         });
 
-        // Function to open the file using the NT Username
+        // Open file in new tab
         function openFile() {
             const ntUsername = ntUsernameInput.value.trim();
             if (!ntUsername) return alert("Please enter your NT Username.");
 
-            // Construct the file path (Note: Browsers may not allow file system access like this)
             const filePath = `file:///C:/Users/${ntUsername}/AppData/Roaming/Avaya/one-X%20Agent/2.5/Profiles/default/ContactLog.xml`;
             window.open(filePath, '_blank');
 
-            // Show the paste section for the user to paste file content
+            // Show the paste section
             pasteSection.classList.remove('hidden');
         }
 
-        // Function to handle the pasted data from the user
+        // Handle pasted data
         function handlePaste() {
             const pastedData = pasteBox.value.trim();
             if (!pastedData) return alert("Please paste the file content.");
 
-            // Remove the first line if it exists (BOM or header)
+            // Remove the first line if it exists
             const lines = pastedData.split('\n');
             if (lines.length > 1) {
                 lines.shift(); // Remove the first line
             }
-            // Join the remaining lines back into a single string
-            fileContent = lines.join('\n');
+            fileContent = lines.join('\n'); // Join the remaining lines
 
-            // Extract dates from the XML content and populate the date dropdown
             populateDateDropdown(extractDates(fileContent));
             dateSection.classList.remove('hidden');
             pasteSection.classList.add('hidden');
+            shiftPasteSection.classList.remove('hidden');
         }
 
-        // Add event listeners to buttons to change their style when clicked
+        // Add event listeners for buttons to change their style when clicked
         document.querySelectorAll('button').forEach(button => {
             button.addEventListener('click', () => {
                 button.classList.add('clicked');
             });
         });
 
-        // Event listeners for the drag-and-drop area
+        // Rest of the code remains the same as before
         dropArea.addEventListener('dragover', (e) => {
             e.preventDefault();
             dropArea.style.background = '#333';
         });
-        dropArea.addEventListener('dragleave', () => {
-            dropArea.style.background = '#252525';
-        });
+        dropArea.addEventListener('dragleave', () => dropArea.style.background = '#252525');
         dropArea.addEventListener('drop', (e) => {
             e.preventDefault();
             handleFile(e.dataTransfer.files[0]);
         });
-        dropArea.addEventListener('click', () => {
-            fileInput.click();
-        });
-        fileInput.addEventListener('change', (e) => {
-            handleFile(e.target.files[0]);
-        });
+        dropArea.addEventListener('click', () => fileInput.click());
+        fileInput.addEventListener('change', (e) => handleFile(e.target.files[0]));
 
-        // Function to handle the selected file
         function handleFile(file) {
             const reader = new FileReader();
             reader.onload = (e) => {
                 fileContent = e.target.result;
-                // Extract dates and populate the date dropdown
                 populateDateDropdown(extractDates(fileContent));
                 dateSection.classList.remove('hidden');
+                shiftPasteSection.classList.remove('hidden');
             };
-            // Read the file content as text
             reader.readAsText(file);
         }
 
-        // Function to extract unique dates from the XML content
         function extractDates(xmlContent) {
-            const parser = new DOMParser();
-            const xmlDoc = parser.parseFromString(xmlContent, "text/xml");
-            // Use a Set to store unique dates
-            const datesSet = new Set();
-            const logs = xmlDoc.getElementsByTagName("ContactLog");
-            // Iterate over each log entry
-            for (let log of logs) {
-                const createTime = log.getAttribute("CreateTime");
-                if (createTime) {
-                    // Extract the date portion (YYYY-MM-DD)
-                    const date = createTime.substring(0, 10);
-                    datesSet.add(date);
-                }
-            }
-            // Convert the Set to an array and sort it in descending order
-            return Array.from(datesSet).sort((a, b) => b.localeCompare(a));
+            const xmlDoc = new DOMParser().parseFromString(xmlContent, "text/xml");
+            return [...new Set([...xmlDoc.getElementsByTagName("ContactLog")].map(log => log.getAttribute("CreateTime")?.substring(0, 10)))].sort((a, b) => b.localeCompare(a));
         }
 
-        // Function to populate the date dropdown with extracted dates
         function populateDateDropdown(dates) {
             const dateOptionsDiv = document.getElementById('dateOptions');
-            // Create option elements for each date
             dateOptionsDiv.innerHTML = dates.map(date => `<span class="custom-option" data-value="${date}">${date}</span>`).join('');
-            // Set up event listeners for the custom options
             setupCustomOptions(dateOptionsDiv);
 
             // Automatically select the first date
@@ -580,12 +455,11 @@
             if (firstOption) firstOption.classList.add('selected');
         }
 
-        // Setup custom select dropdown behavior
+        // Setup custom selects
         document.addEventListener('DOMContentLoaded', function() {
             const customSelects = document.querySelectorAll('.custom-select');
             const customSelectTriggers = document.querySelectorAll('.custom-select__trigger');
 
-            // Toggle the open class when the trigger is clicked
             customSelectTriggers.forEach(trigger => {
                 trigger.addEventListener('click', function(e) {
                     const select = this.parentElement;
@@ -594,7 +468,6 @@
                 });
             });
 
-            // Close other selects when one is opened
             function closeOtherSelects(currentSelect) {
                 customSelects.forEach(select => {
                     if (select !== currentSelect) {
@@ -603,7 +476,6 @@
                 });
             }
 
-            // Close all selects when clicking outside
             document.addEventListener('click', function(e) {
                 customSelects.forEach(select => {
                     if (!select.contains(e.target)) {
@@ -619,77 +491,47 @@
             });
         });
 
-        // Function to set up event listeners for custom options
         function setupCustomOptions(optionsDiv) {
             const select = optionsDiv.closest('.custom-select');
             const options = optionsDiv.querySelectorAll('.custom-option');
             options.forEach(option => {
                 option.addEventListener('click', function() {
-                    // Update the trigger text with the selected option
                     select.querySelector('.custom-select__trigger span').textContent = this.textContent;
                     select.classList.remove('open');
-                    // Remove selected class from all options
                     options.forEach(opt => opt.classList.remove('selected'));
-                    // Add selected class to the clicked option
                     this.classList.add('selected');
-                    // Set the selected value as a data attribute
                     select.setAttribute('data-value', this.getAttribute('data-value'));
-                    // If shift type is selected, proceed to check shift
-                    if (select.classList.contains('shiftType')) {
-                        checkShift();
-                    }
                 });
             });
         }
 
-        // Function to calculate time logs based on the selected date
         function calculate() {
             const dateSelect = document.querySelector('.custom-select.dateDropdown');
             const selectedDate = dateSelect.getAttribute('data-value');
             if (!fileContent) return alert("Please load a file first.");
             if (!selectedDate) return alert("Please select a date.");
 
-            // Calculate times for ready, ACW, and outbound
             const { readyTime, acwTime, outboundTime } = calculateTimes(fileContent, selectedDate);
             const totalLoginTime = readyTime + acwTime + outboundTime;
 
-            // Update the result label with calculated times
+            const shiftDetails = shiftPasteBox.value.trim();
+            if (!shiftDetails) return alert("Please paste your shift details.");
+
+            const totalPhoneTime = calculateTotalPhoneTime(shiftDetails);
+
             document.getElementById('resultLabel').innerHTML = `
                 <div class="ready"><strong>Total READY:</strong> ${formatTime(readyTime)}</div>
                 <div class="acw"><strong>Total ACW:</strong> ${formatTime(acwTime)}</div>
                 <div class="outbound"><strong>Total Outbound:</strong> ${formatTime(outboundTime)}</div>
                 <div class="total"><strong>TOTAL LOGIN TODAY:</strong> ${formatTime(totalLoginTime)}</div>
+                <div class="total"><strong>REQUIRED PHONE TIME:</strong> ${formatTime(totalPhoneTime)}</div>
             `;
 
-            // Remove any previous glow effects
+            // Reset any previous glow
             resultCard.classList.remove('green-glow', 'red-glow');
 
-            resultSection.classList.remove('hidden');
-            shiftSection.classList.remove('hidden');
-            adviceMessage.classList.add('hidden');
-            outOfQSection.classList.add('hidden');
-            lostHoursButton.classList.add('hidden');
-            document.getElementById('outOfQTime').value = '';
-        }
+            const difference = totalPhoneTime - totalLoginTime;
 
-        // Function to check shift type and provide advice
-        function checkShift() {
-            const shiftSelect = document.querySelector('.custom-select.shiftType');
-            const shiftType = shiftSelect.getAttribute('data-value');
-
-            const totalLoginTime = calculateTotalLoginTime();
-
-            // Define required times for each shift type in seconds
-            const shiftTimes = {
-                full: 7 * 3600 + 50 * 60,   // 7 hours 50 minutes
-                short: 6 * 3600 + 10 * 60,  // 6 hours 10 minutes
-                part: 3 * 3600 + 40 * 60    // 3 hours 40 minutes
-            };
-
-            const requiredTime = shiftTimes[shiftType];
-            const difference = requiredTime - totalLoginTime;
-
-            // Apply glow effect and show advice based on the difference
             if (difference > 0) {
                 adviceMessage.innerHTML = `
                     <div class="warning">You need to login ${formatTime(difference)} more.</div>
@@ -703,32 +545,43 @@
                 resultCard.classList.remove('red-glow');
                 resultCard.classList.add('green-glow');
             }
+
+            resultSection.classList.remove('hidden');
             adviceMessage.classList.remove('hidden');
             outOfQSection.classList.remove('hidden');
             lostHoursButton.classList.add('hidden');
             document.getElementById('outOfQTime').value = '';
         }
 
-        // Function to recalculate based on Out of Q time
+        function calculateTotalPhoneTime(shiftDetails) {
+            const lines = shiftDetails.split('\n');
+            let totalPhoneTime = 0;
+
+            lines.forEach(line => {
+                if (line.includes("Phone_")) {
+                    const timeRange = line.split('\t')[1];
+                    const [startTime, endTime] = timeRange.split(' - ');
+                    totalPhoneTime += calculateTimeDifference(startTime, endTime);
+                }
+            });
+
+            return totalPhoneTime;
+        }
+
+        function calculateTimeDifference(startTime, endTime) {
+            const start = new Date(`01/01/1970 ${startTime}`);
+            const end = new Date(`01/01/1970 ${endTime}`);
+            return (end - start) / 1000; // Convert to seconds
+        }
+
         function calculateLostHours() {
             const outOfQTime = parseInt(document.getElementById('outOfQTime').value) || 0;
-            const shiftSelect = document.querySelector('.custom-select.shiftType');
-            const shiftType = shiftSelect.getAttribute('data-value');
             const totalLoginTime = calculateTotalLoginTime();
+            const shiftDetails = shiftPasteBox.value.trim();
+            const totalPhoneTime = calculateTotalPhoneTime(shiftDetails);
 
-            // Define required times for each shift type in seconds
-            const shiftTimes = {
-                full: 7 * 3600 + 50 * 60,
-                short: 6 * 3600 + 10 * 60,
-                part: 3 * 3600 + 40 * 60
-            };
+            const difference = totalPhoneTime - (totalLoginTime + (outOfQTime * 60));
 
-            const requiredTime = shiftTimes[shiftType];
-            // Add Out of Q time (converted to seconds) to total login time
-            const adjustedLoginTime = totalLoginTime + (outOfQTime * 60);
-            const difference = requiredTime - adjustedLoginTime;
-
-            // Apply glow effect and show advice based on the new difference
             if (difference > 0) {
                 adviceMessage.innerHTML = `
                     <div class="warning">You still need to login ${formatTime(difference)} more.</div>
@@ -744,7 +597,6 @@
             }
         }
 
-        // Function to calculate total login time
         function calculateTotalLoginTime() {
             const dateSelect = document.querySelector('.custom-select.dateDropdown');
             const selectedDate = dateSelect.getAttribute('data-value');
@@ -752,61 +604,38 @@
             return readyTime + acwTime + outboundTime;
         }
 
-        // Function to parse XML and calculate times
         function calculateTimes(xmlContent, targetDate) {
-            const parser = new DOMParser();
-            const xmlDoc = parser.parseFromString(xmlContent, "text/xml");
-            const logs = xmlDoc.getElementsByTagName("ContactLog");
-
-            // Initialize time accumulators
-            let readyTime = 0;
-            let acwTime = 0;
-            let outboundTime = 0;
-
-            // Iterate over each log entry
-            for (let log of logs) {
-                const createTime = log.getAttribute("CreateTime");
-                if (createTime && createTime.startsWith(targetDate)) {
-                    // Get duration in seconds
+            const logs = new DOMParser().parseFromString(xmlContent, "text/xml").getElementsByTagName("ContactLog");
+            return [...logs].reduce((acc, log) => {
+                if (log.getAttribute("CreateTime")?.startsWith(targetDate)) {
                     const duration = Math.max(0, parseInt(log.getAttribute("Duration") || "0"));
                     const topic = log.getAttribute("Topic");
-                    if (topic === "Ready") {
-                        readyTime += duration;
-                    } else if (topic === "After Call Work") {
-                        acwTime += duration;
-                    } else if (topic === "") {
-                        // Check for outbound calls when topic is empty
-                        const contactLogItems = log.getElementsByTagName("ContactLogItem");
-                        for (let item of contactLogItems) {
-                            const uri = item.getAttribute("Uri");
-                            if (uri && uri.startsWith("+9")) {
-                                outboundTime += duration;
-                                break;
-                            }
-                        }
+                    if (topic === "Ready") acc.readyTime += duration;
+                    else if (topic === "After Call Work") acc.acwTime += duration;
+                    else if (topic === "") { // Only calculate outbound if Topic is exactly ""
+                        // Check for Outbound calls
+                        const isOutbound = [...log.getElementsByTagName("ContactLogItem")].some(item => item.getAttribute("Uri")?.startsWith("+9"));
+                        if (isOutbound) acc.outboundTime += duration;
                     }
                 }
-            }
-            // Return the calculated times
-            return { readyTime, acwTime, outboundTime };
+                return acc;
+            }, { readyTime: 0, acwTime: 0, outboundTime: 0 });
         }
-
-        // Function to format time from seconds to "Xh Ym Zs"
+        
         function formatTime(seconds) {
-            const hours = Math.floor(seconds / 3600);
-            const minutes = Math.floor((seconds % 3600) / 60);
-            const secs = seconds % 60;
-            return `${hours}h ${minutes}m ${secs}s`;
+            return `${Math.floor(seconds / 3600)}h ${Math.floor((seconds % 3600) / 60)}m ${seconds % 60}s`;
         }
 
-        // Show or hide the "Recalculate" button based on Out of Q input
+        // Show/Hide Recalculate button based on Out of Q input
         document.getElementById('outOfQTime').addEventListener('input', function() {
+            const lostHoursButton = document.getElementById('lostHoursButton');
             if (this.value.trim() !== '') {
                 lostHoursButton.classList.remove('hidden');
             } else {
                 lostHoursButton.classList.add('hidden');
             }
         });
+
     </script>
 </body>
 </html>
