@@ -39,8 +39,9 @@
             font-size: 16px;
         }
         input, textarea {
-            background: #252525;
+            background: #232525;
             color: #fff;
+            border: 2px dashed #f00;
         }
         .drop-area {
             border: 2px dashed #0ff;
@@ -295,6 +296,42 @@
             resize: vertical;
         }
 
+        /* Add red border for required fields when empty */
+        input.required:invalid, textarea.required:invalid {
+            border: 2px solid #ff4444 !important;
+        }
+
+        input.required:valid, textarea.required:valid {
+            border: 2px solid #0ff !important;
+        }
+
+        /* Style for the Calculate Anyway button */
+        #calculateAnywayButton {
+            margin-top: 10px;
+            background: linear-gradient(45deg, #ff4444, #ffa500);
+        }
+
+        #calculateAnywayButton:hover {
+            background: linear-gradient(45deg, #ffa500, #ff4444);
+        }
+        /* Add red border for required fields when empty */
+        input.required:invalid, textarea.required:invalid {
+            border: 2px solid #ff4444 !important;
+        }
+
+        input.required:valid, textarea.required:valid {
+            border: 2px solid #0ff !important;
+        }
+
+        /* Style for the Calculate Anyway button */
+        #calculateAnywayButton {
+            margin-top: 10px;
+            background: linear-gradient(45deg, #ff4444, #ffa500);
+        }
+
+        #calculateAnywayButton:hover {
+            background: linear-gradient(45deg, #ffa500, #ff4444);
+        }
     </style>
 </head>
 <body>
@@ -303,13 +340,13 @@
 
         <!-- NT Username Section -->
         <div class="username-section">
-            <input type="text" id="ntUsername" placeholder="Enter your NT Username">
+            <input type="text" id="ntUsername" class="required" placeholder="Enter your NT Username" required>
             <button id="openFileButton" class="hidden" onclick="openFile()">Open File</button>
         </div>
 
         <!-- Paste Section -->
         <div class="paste-section hidden" id="pasteSection">
-            <textarea id="pasteBox" placeholder="Copy and paste the content of the file here"></textarea>
+            <textarea id="pasteBox" class="required" placeholder="Copy and paste the content of the file here" required></textarea>
             <button onclick="handlePaste()">Use Pasted Data</button>
         </div>
 
@@ -334,7 +371,8 @@
         <!-- New Shift Paste Section -->
         <div id="shiftPasteSection" class="hidden">
             <label for="shiftPasteBox">Paste Your Shift:</label>
-            <textarea id="shiftPasteBox" placeholder="Paste your shift details here"></textarea>
+            <textarea id="shiftPasteBox" class="required" placeholder="Paste your shift details here" required></textarea>
+            <button id="calculateAnywayButton" class="hidden" onclick="calculate(true)">Calculate Anyway</button>
         </div>
 
         <div id="resultSection" class="hidden">
@@ -344,7 +382,7 @@
 
         <div id="outOfQSection" class="hidden">
             <label for="outOfQTime">Did you get Out of Q (in minutes):</label>
-            <input type="number" id="outOfQTime" placeholder="Enter out-of-Q time in minutes">
+            <input type="number" id="outOfQTime" class="required" placeholder="Enter out-of-Q time in minutes" required>
             <button onclick="calculateLostHours()" id="lostHoursButton" class="hidden">Recalculate</button>
         </div>
 
@@ -366,6 +404,7 @@
         const pasteBox = document.getElementById('pasteBox');
         const shiftPasteSection = document.getElementById('shiftPasteSection');
         const shiftPasteBox = document.getElementById('shiftPasteBox');
+        const calculateAnywayButton = document.getElementById('calculateAnywayButton');
 
         // Show/Hide Open File button based on NT Username input
         ntUsernameInput.addEventListener('input', function() {
@@ -505,7 +544,7 @@
             });
         }
 
-        function calculate() {
+        function calculate(ignoreShift = false) {
             const dateSelect = document.querySelector('.custom-select.dateDropdown');
             const selectedDate = dateSelect.getAttribute('data-value');
             if (!fileContent) return alert("Please load a file first.");
@@ -515,22 +554,30 @@
             const totalLoginTime = readyTime + acwTime + outboundTime;
 
             const shiftDetails = shiftPasteBox.value.trim();
-            if (!shiftDetails) return alert("Please paste your shift details.");
+            if (!shiftDetails && !ignoreShift) {
+                adviceMessage.innerHTML = `
+                    <div class="warning">Please paste your shift details.</div>
+                `;
+                calculateAnywayButton.classList.remove('hidden');
+                return;
+            }
 
-            const totalPhoneTime = calculateTotalPhoneTime(shiftDetails);
+            calculateAnywayButton.classList.add('hidden');
+
+            const totalPhoneTime = shiftDetails ? calculateTotalPhoneTime(shiftDetails) : 0;
 
             document.getElementById('resultLabel').innerHTML = `
                 <div class="ready"><strong>Total READY:</strong> ${formatTime(readyTime)}</div>
                 <div class="acw"><strong>Total ACW:</strong> ${formatTime(acwTime)}</div>
                 <div class="outbound"><strong>Total Outbound:</strong> ${formatTime(outboundTime)}</div>
                 <div class="total"><strong>TOTAL LOGIN TODAY:</strong> ${formatTime(totalLoginTime)}</div>
-                <div class="total"><strong>REQUIRED PHONE TIME:</strong> ${formatTime(totalPhoneTime)}</div>
+                ${shiftDetails ? `<div class="total"><strong>REQUIRED PHONE TIME:</strong> ${formatTime(totalPhoneTime)}</div>` : ''}
             `;
 
             // Reset any previous glow
             resultCard.classList.remove('green-glow', 'red-glow');
 
-            const difference = totalPhoneTime - totalLoginTime;
+            const difference = shiftDetails ? totalPhoneTime - totalLoginTime : 0;
 
             if (difference > 0) {
                 adviceMessage.innerHTML = `
